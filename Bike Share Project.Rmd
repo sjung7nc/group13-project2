@@ -1,0 +1,52 @@
+---
+title: "Bike Share Project"
+author: "Kera Whitley"
+output: github_document
+---
+
+# Set up
+Libraries and other set up should be in this chunk
+```{r}
+library(tidyverse)
+```
+
+# Introduction
+```{r}
+
+```
+
+# Data
+```{r}
+day <- read_csv("day.csv")
+monday <- day %>% filter(weekday == 1)
+
+n <- nrow(monday) * 0.7
+
+set.seed(13)
+# The training set should be 70% of the data
+n <- nrow(monday) * 0.7
+train <- sample_n(monday, n, replace = FALSE)
+test <- anti_join(monday, train, by = "dteday")
+
+```
+
+# Summarizations
+```{r}
+
+```
+
+# Modeling
+```{r}
+
+```
+
+# Comparison
+```{r}
+
+```
+
+# Automation
+```{r}
+
+```
+
