@@ -36,20 +36,28 @@ test <- anti_join(monday, train, by = "dteday")
 train %>% select(casual, registered) %>% colSums()
 
 train %>% group_by(weathersit) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-train %>% group_by(weathersit) %>% summarize(bikers=sum(casual,registered))
+by.weather <- train %>% group_by(weathersit) %>% summarize(bikers=sum(casual,registered))
+by.weather
+ggplot(by.weather, aes(x=weathersit, y=bikers))+geom_col(fill="cornflowerblue")
 
 train %>% group_by(season) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-train %>% group_by(season) %>% summarize(bikers=sum(casual,registered))
+by.season <- train %>% group_by(season) %>% summarize(bikers=sum(casual,registered))
+by.season
+ggplot(by.season, aes(x=season, y=bikers))+geom_col(fill="darkolivegreen4")
 
 train %>% group_by(mnth) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-train %>% group_by(mnth) %>% summarize(bikers=sum(casual,registered))
+month <- train %>% group_by(mnth) %>% summarize(bikers=sum(casual,registered))
+month
+ggplot(month, aes(x=mnth, y=bikers)) + geom_col(fill="coral1")
 
 train %>% group_by(holiday) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-train %>% group_by(holiday) %>% summarize(bikers=sum(casual,registered))
+by.holi <- train %>% group_by(holiday) %>% summarize(bikers=sum(casual,registered))
+by.holi
+ggplot(by.holi, aes(x=holiday, y=bikers)) + geom_col(fill="darkgoldenrod1")
 
 train$holiday <- as.factor(train$holiday)
-ggplot(train, aes(x=holiday, y=casual))+geom_boxplot()
-ggplot(train, aes(x=holiday, y=registered))+geom_boxplot()
+ggplot(train, aes(x=holiday, y=casual))+geom_boxplot(fill="darkmagenta")
+ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")
 ```
 
 # Modeling
