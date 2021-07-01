@@ -32,11 +32,21 @@ test <- anti_join(monday, train, by = "dteday")
 
 # Summarizations
 ```{r}
+
 train %>% select(casual, registered) %>% colSums()
 
 train %>% group_by(weathersit) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
+train %>% group_by(weathersit) %>% summarize(bikers=sum(casual,registered))
+
+train %>% group_by(season) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
+train %>% group_by(season) %>% summarize(bikers=sum(casual,registered))
+
+train %>% group_by(mnth) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
+train %>% group_by(mnth) %>% summarize(bikers=sum(casual,registered))
 
 train %>% group_by(holiday) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
+train %>% group_by(holiday) %>% summarize(bikers=sum(casual,registered))
+
 train$holiday <- as.factor(train$holiday)
 ggplot(train, aes(x=holiday, y=casual))+geom_boxplot()
 ggplot(train, aes(x=holiday, y=registered))+geom_boxplot()
