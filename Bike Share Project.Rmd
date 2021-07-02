@@ -1,6 +1,6 @@
 ---
 title: "Bike Share Project"
-author: "Kera Whitley"
+author: "Soohee Jung, Kera Whitley"
 output: github_document
 ---
 
@@ -8,6 +8,7 @@ output: github_document
 Libraries and other set up should be in this chunk
 ```{r}
 library(tidyverse)
+library(corrplot)
 ```
 
 # Introduction
@@ -32,6 +33,9 @@ test <- anti_join(monday, train, by = "dteday")
 
 # Summarizations
 ```{r}
+# Correlation Plot of the full data minus the date
+train.cor <- train %>% select(!contains("dte"))
+corrplot(cor(train.cor), na.label = " ", diag = FALSE, type = "lower", tl.srt = 45)
 
 train %>% select(casual, registered) %>% colSums()
 
