@@ -18,22 +18,42 @@ library(corrplot)
 
 # Data
 ```{r}
-day <- read_csv("day.csv")
-monday <- day %>% filter(weekday == 1)
+day.data <- read_csv("day.csv")
+day <- day.data %>% filter(weekday == 1)
+
+# Converting variables that should be factors into factor variables
+day$season <- factor(day$season)
+levels(day$season) <- c("Spring", "Summer", "Fall", "Winter")
+
+day$yr <- factor(day$yr)
+levels(day$yr) <- c("2011", "2012")
+
+day$mnth <- factor(day$mnth)
+levels(day$mnth) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "oct", "Nov", "Dec")
+
+day$holiday <- factor(day$holiday)
+levels(day$holiday) <- c("Not Holiday", "Holiday")
+
+day$workingday <- factor(day$workingday)
+levels(day$workingday) <- c("Not Working", "Working")
+
+day$weathersit <- factor(day$weathersit)
+levels(day$weathersit) <- c("Fair", "Misty", "Light Snow/Rain", "Heavy Rain/Ice/Snow")
 
 set.seed(13)
 # The training set should be 70% of the data
-n <- nrow(monday) * 0.7
-train <- sample_n(monday, n, replace = FALSE)
-test <- anti_join(monday, train, by = "dteday")
+n <- nrow(day) * 0.7
+train <- sample_n(day, n, replace = FALSE)
+test <- anti_join(day, train, by = "dteday")
 
 ```
 
 # Summarizations
 ```{r}
 # Correlation plot of the training data without the date included
-train.cor <- train %>% select(!contains("dte"))
-corrplot(cor(train.cor), diag = FALSE, tl.srt = 45, na.label = " ", type = "lower")
+#train.nodate <- train %>% select(!contains("dte"))
+#train.cor <- cor(train.nodate)
+#corrplot(train.cor, diag = FALSE, tl.srt = 45, na.label = " ", type = "lower")
 
 # Total number of each casual users and registered users 
 train %>% select(casual, registered) %>% colSums()
@@ -80,6 +100,9 @@ ggplot(train, aes(x=holiday, y=casual))+geom_boxplot(fill="darkmagenta")+
 # We can inspect the trend of registered users across whether holiday or not using this plot.
 ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")+
   scale_x_discrete(name="Holiday", labels=c("No","Yes"))+scale_y_continuous(name="Registered Users")
+
+table(train$season, train$weathersit)
+table(train$workingday, train$weathersit)
 ```
 
 # Modeling
