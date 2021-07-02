@@ -23,13 +23,13 @@ day <- day.data %>% filter(weekday == 1)
 
 # Converting variables that should be factors into factor variables
 day$season <- factor(day$season)
-levels(day$season) <- c("Spring", "Summer", "Fall", "Winter")
+levels(day$season) <- c("Winter","Spring", "Summer", "Fall")
 
 day$yr <- factor(day$yr)
 levels(day$yr) <- c("2011", "2012")
 
 day$mnth <- factor(day$mnth)
-levels(day$mnth) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "oct", "Nov", "Dec")
+levels(day$mnth) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
 day$holiday <- factor(day$holiday)
 levels(day$holiday) <- c("Not Holiday", "Holiday")
@@ -59,47 +59,40 @@ test <- anti_join(day, train, by = "dteday")
 train %>% select(casual, registered) %>% colSums()
 
 train %>% group_by(weathersit) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.weather <- train %>% group_by(weathersit) %>% summarize(bikers=sum(casual,registered))
+by.weather <- train %>% group_by(weathersit) %>% summarize(Bikers=sum(casual,registered))
 by.weather
 # We can inspect the trend of all users across weather condition using this plot.
-by.weather$weathersit <- as.factor(by.weather$weathersit)
-ggplot(by.weather, aes(x=weathersit, y=bikers))+geom_col(fill="cornflowerblue", width = 0.8)+
-  scale_x_discrete(name="Weather",labels=c("Fair","Misty","Light Snow/Rain"))+
-  scale_y_continuous(name="Bikers")
+ggplot(by.weather, aes(x=weathersit, y=Bikers))+geom_col(fill="cornflowerblue", width = 0.8)+
+  scale_x_discrete(name="Weather")
 
 train %>% group_by(season) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.season <- train %>% group_by(season) %>% summarize(bikers=sum(casual,registered))
+by.season <- train %>% group_by(season) %>% summarize(Bikers=sum(casual,registered))
 by.season
 # We can inspect the trend of all users across season using this plot.
 # There may be a weather effect present.
-by.season$season <- as.factor(by.season$season)
-ggplot(by.season, aes(x=season, y=bikers))+geom_col(fill="darkolivegreen4")+
-  scale_x_discrete(name="Season",labels=c("Winter","Spring","Summer","Fall"))+
-  scale_y_continuous(name="Bikers")
+ggplot(by.season, aes(x=season, y=Bikers))+geom_col(fill="darkolivegreen4")+
+  scale_x_discrete(name="Season")
 
 train %>% group_by(mnth) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-month <- train %>% group_by(mnth) %>% summarize(bikers=sum(casual,registered))
+month <- train %>% group_by(mnth) %>% summarize(Bikers=sum(casual,registered))
 month
 # We can inspect the trend of all users across months using this plot.
 # There may be a seasonal effect present.
-month$mnth <- as.factor(month$mnth)
-ggplot(month, aes(x=mnth, y=bikers)) + geom_col(fill="coral1")+
-  scale_x_discrete(name="Month")+scale_y_continuous(name="Bikers")
+ggplot(month, aes(x=mnth, y=Bikers)) + geom_col(fill="coral1")+
+  scale_x_discrete(name="Month")
 
 train %>% group_by(holiday) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.holi <- train %>% group_by(holiday) %>% summarize(bikers=sum(casual,registered))
+by.holi <- train %>% group_by(holiday) %>% summarize(Bikers=sum(casual,registered))
 by.holi
 # We can inspect the trend of all users across whether holiday or not using this plot.
-by.holi$holiday <- as.factor(by.holi$holiday)
-ggplot(by.holi, aes(x=holiday, y=bikers)) + geom_col(fill="darkgoldenrod1", width = 0.7)+
-  scale_x_discrete(name="Holiday", labels=c("No","Yes"))+scale_y_continuous(name="Bikers")
+ggplot(by.holi, aes(x=holiday, y=Bikers)) + geom_col(fill="darkgoldenrod1", width = 0.7)+
+  scale_x_discrete(name="Holiday")
 # We can inspect the trend of casual users across whether holiday or not using this plot.
-train$holiday <- as.factor(train$holiday)
 ggplot(train, aes(x=holiday, y=casual))+geom_boxplot(fill="darkmagenta")+
-  scale_x_discrete(name="Holiday", labels=c("No","Yes"))+scale_y_continuous(name="Casual Users")
+  scale_x_discrete(name="Holiday")+scale_y_continuous(name="Casual Users")
 # We can inspect the trend of registered users across whether holiday or not using this plot.
 ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")+
-  scale_x_discrete(name="Holiday", labels=c("No","Yes"))+scale_y_continuous(name="Registered Users")
+  scale_x_discrete(name="Holiday")+scale_y_continuous(name="Registered Users")
 
 table(train$season, train$weathersit)
 table(train$workingday, train$weathersit)
