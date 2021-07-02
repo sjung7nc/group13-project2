@@ -41,7 +41,7 @@ by.weather
 # We can inspect the trend of all users across weather condition using this plot.
 by.weather$weathersit <- as.factor(by.weather$weathersit)
 ggplot(by.weather, aes(x=weathersit, y=bikers))+geom_col(fill="cornflowerblue", width = 0.8)+
-  scale_x_discrete(name="Weather",labels=c("Clear","Mist","Bad"))+
+  scale_x_discrete(name="Weather",labels=c("Fair","Misty","Light Snow/Rain"))+
   scale_y_continuous(name="Bikers")
 
 train %>% group_by(season) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
