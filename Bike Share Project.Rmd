@@ -21,8 +21,6 @@ library(corrplot)
 day <- read_csv("day.csv")
 monday <- day %>% filter(weekday == 1)
 
-n <- nrow(monday) * 0.7
-
 set.seed(13)
 # The training set should be 70% of the data
 n <- nrow(monday) * 0.7
@@ -33,6 +31,10 @@ test <- anti_join(monday, train, by = "dteday")
 
 # Summarizations
 ```{r}
+# Correlation plot of the training data without the date included
+train.cor <- train %>% select(!contains("dte"))
+corrplot(cor(train.cor), diag = FALSE, tl.srt = 45, na.label = " ", type = "lower")
+
 # Total number of each casual users and registered users 
 train %>% select(casual, registered) %>% colSums()
 
