@@ -9,6 +9,7 @@ Libraries and other set up should be in this chunk
 ```{r}
 library(tidyverse)
 library(corrplot)
+library(randomForest)
 ```
 
 # Introduction
@@ -59,14 +60,14 @@ test <- anti_join(day, train, by = "dteday")
 train %>% select(casual, registered) %>% colSums()
 
 train %>% group_by(weathersit) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.weather <- train %>% group_by(weathersit) %>% summarize(Bikers=sum(casual,registered))
+by.weather <- train %>% group_by(weathersit) %>% summarise(Bikers=sum(cnt))
 by.weather
 # We can inspect the trend of all users across weather condition using this plot.
 ggplot(by.weather, aes(x=weathersit, y=Bikers))+geom_col(fill="cornflowerblue", width = 0.8)+
   scale_x_discrete(name="Weather")
 
 train %>% group_by(season) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.season <- train %>% group_by(season) %>% summarize(Bikers=sum(casual,registered))
+by.season <- train %>% group_by(season) %>% summarise(Bikers=sum(cnt))
 by.season
 # We can inspect the trend of all users across season using this plot.
 # There may be a weather effect present.
@@ -74,15 +75,15 @@ ggplot(by.season, aes(x=season, y=Bikers))+geom_col(fill="darkolivegreen4")+
   scale_x_discrete(name="Season")
 
 train %>% group_by(mnth) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-month <- train %>% group_by(mnth) %>% summarize(Bikers=sum(casual,registered))
-month
+by.month <- train %>% group_by(mnth) %>% summarise(Bikers=sum(cnt))
+by.month
 # We can inspect the trend of all users across months using this plot.
 # There may be a seasonal effect present.
 ggplot(month, aes(x=mnth, y=Bikers)) + geom_col(fill="coral1")+
   scale_x_discrete(name="Month")
 
 train %>% group_by(holiday) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.holi <- train %>% group_by(holiday) %>% summarize(Bikers=sum(casual,registered))
+by.holi <- train %>% group_by(holiday) %>% summarise(Bikers=sum(cnt))
 by.holi
 # We can inspect the trend of all users across whether holiday or not using this plot.
 ggplot(by.holi, aes(x=holiday, y=Bikers)) + geom_col(fill="darkgoldenrod1", width = 0.7)+
@@ -100,6 +101,13 @@ table(train$workingday, train$weathersit)
 
 # Modeling
 ```{r}
+set.seed(13)
+# Get random forest model fit
+rfFit <- randomForest(cnt ~ ., data=train, mtry=ncol(train)/3, ntree=200, importance=TRUE)
+rfPred <- predict(rfFit, newdata=dplyr::select(test,-cnt))
+# Root MSE value of root forest
+rfRMSE <- sqrt(mean((rfPred-test$cnt)^2))
+rfRMSE
 
 ```
 
