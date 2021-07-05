@@ -146,11 +146,12 @@ lmPred2 <- predict(lmFit2, newdata=test)
 
 
 # multiple linear regression model 2
-mlrfit <- train(cnt ~ season + temp + yr, data = train, method = "lm", 
+set.seed(13)
+mlrFit <- train(cnt ~ season + temp + yr, data = train, method = "lm", 
                trControl = trainControl(method = "cv", number = 10))
-summary(mlrfit)
+summary(mlrFit)
 
-mlrpred <- predict(kwfit, newdata = test)
+mlrPred <- predict(mlrFit, newdata = test)
 ```
 
 ## Random Forest Model  
@@ -174,9 +175,14 @@ rfPred2 <- predict(rfFit2, newdata=test)
 
 ## Boosted Tree Model  
 ```{r}
+library(gbm)
+set.seed(13)
 
-
-
+boostFit <- gbm(cnt ~ season + temp + yr + weathersit, data = train, distribution = "gaussian", n.trees = 5000, 
+                shrinkage = 0.1, interaction.depth = 4)
+boostFit
+boostPred <- predict(boostFit, newdata = test, n.trees = 5000)
+boostPred
 ```
 
 # Comparison  
@@ -189,16 +195,17 @@ multiRMSE
 multiRMSE2 <- postResample(lmPred2, test$cnt)
 multiRMSE2
 # multiple linear regression model 2
-
+mlrRMSE <- postResample(mlrPred, test$cnt)
+mlrRMSE
 # random forest model
-rfRMSE <- postResample(rfPred, test$cnt)
-rfRMSE
-rfRMSE2 <- postResample(rfPred2, test$cnt)
-rfRMSE2
+#rfRMSE <- postResample(rfPred, test$cnt)
+#rfRMSE
+#rfRMSE2 <- postResample(rfPred2, test$cnt)
+#rfRMSE2
 
 # boosted tree model
-
-
+boostRMSE <- postResample(boostPred, test$cnt)
+boostRMSE
 # compare
 #c(   ,   ,   ,   )
 ```
