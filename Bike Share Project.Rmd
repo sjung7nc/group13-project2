@@ -113,7 +113,6 @@ ggplot(train, aes(x = season, y = cnt)) +
   geom_violin() +
   geom_jitter(shape = 16, size = 3, aes(color = mnth)) +
   labs(x = "Season", y = "Number of Bikers") +
-
   scale_color_manual(name = "Month", values = c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", 
                                                 "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", 
                                                 "#cab2d6", "#6a3d9a", "#dfc27d", "#b15928")) +
@@ -147,7 +146,11 @@ lmPred2 <- predict(lmFit2, newdata=test)
 
 
 # multiple linear regression model 2
+mlrfit <- train(cnt ~ season + temp + yr, data = train, method = "lm", 
+               trControl = trainControl(method = "cv", number = 10))
+summary(mlrfit)
 
+mlrpred <- predict(kwfit, newdata = test)
 ```
 
 ## Random Forest Model  
