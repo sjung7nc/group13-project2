@@ -108,6 +108,22 @@ ggplot(train, aes(x = yr, y = cnt)) +
   geom_jitter(shape = 16) + 
   labs(x = "Year", y = "Number of Bikers") + 
   theme_minimal()
+
+ggplot(train, aes(x = season, y = cnt)) + 
+  geom_violin() +
+  geom_jitter(shape = 16, size = 3, aes(color = mnth)) +
+  labs(x = "Season", y = "Number of Bikers") +
+
+  scale_color_manual(name = "Month", values = c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", 
+                                                "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", 
+                                                "#cab2d6", "#6a3d9a", "#dfc27d", "#b15928")) +
+  theme_minimal()
+
+ggplot(train, aes(x = mnth, y = cnt, fill = "red")) + 
+  geom_col() + 
+  geom_col(data = train, aes(x = mnth, y = casual, fill = "blue")) +
+  labs(x = "Month", y = "Total Number of Bikers") +
+  scale_fill_discrete(name = "Biker Type", labels = c("Casual", "Registered"))
 ```
 
 # Modeling  
