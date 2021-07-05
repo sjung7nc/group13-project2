@@ -9,7 +9,7 @@ Libraries and other set up should be in this chunk
 ```{r}
 library(tidyverse)
 library(corrplot)
-library(randomForest)
+library(caret)
 ```
 
 # Introduction
@@ -59,6 +59,22 @@ test <- anti_join(day, train, by = "dteday")
 # Total number of each casual users and registered users 
 train %>% select(casual, registered) %>% colSums()
 
+train %>% group_by(mnth) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
+by.month <- train %>% group_by(mnth) %>% summarise(Bikers=sum(cnt))
+by.month
+# We can inspect the trend of all users across months using this plot.
+# There may be a seasonal effect present.
+ggplot(by.month, aes(x=mnth, y=Bikers)) + geom_col(fill="coral1")+
+  scale_x_discrete(name="Month")
+
+train %>% group_by(season) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
+by.season <- train %>% group_by(season) %>% summarise(Bikers=sum(cnt))
+by.season
+# We can inspect the trend of all users across season using this plot.
+# There may be weather or temperature effect present.
+ggplot(by.season, aes(x=season, y=Bikers))+geom_col(fill="darkolivegreen4")+
+  scale_x_discrete(name="Season")
+
 train %>% group_by(weathersit) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
 by.weather <- train %>% group_by(weathersit) %>% summarise(Bikers=sum(cnt))
 by.weather
@@ -66,21 +82,9 @@ by.weather
 ggplot(by.weather, aes(x=weathersit, y=Bikers))+geom_col(fill="cornflowerblue", width = 0.8)+
   scale_x_discrete(name="Weather")
 
-train %>% group_by(season) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.season <- train %>% group_by(season) %>% summarise(Bikers=sum(cnt))
-by.season
-# We can inspect the trend of all users across season using this plot.
-# There may be a weather effect present.
-ggplot(by.season, aes(x=season, y=Bikers))+geom_col(fill="darkolivegreen4")+
-  scale_x_discrete(name="Season")
-
-train %>% group_by(mnth) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.month <- train %>% group_by(mnth) %>% summarise(Bikers=sum(cnt))
-by.month
-# We can inspect the trend of all users across months using this plot.
-# There may be a seasonal effect present.
-ggplot(month, aes(x=mnth, y=Bikers)) + geom_col(fill="coral1")+
-  scale_x_discrete(name="Month")
+# We can inspect the trend of all users across weather condition using this plot.
+ggplot(train, aes(x=temp, y=cnt)) + geom_point() + geom_smooth()+
+  scale_x_continuous(name="Temperature")+scale_y_discrete(name="Bikers")
 
 train %>% group_by(holiday) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
 by.holi <- train %>% group_by(holiday) %>% summarise(Bikers=sum(cnt))
@@ -95,25 +99,62 @@ ggplot(train, aes(x=holiday, y=casual))+geom_boxplot(fill="darkmagenta")+
 ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")+
   scale_x_discrete(name="Holiday")+scale_y_continuous(name="Registered Users")
 
+# We can inspect the trend of registered users across whether holiday or not using this plot.
+
 table(train$season, train$weathersit)
 table(train$workingday, train$weathersit)
 ```
 
-# Modeling
+# Modeling  
+## Linear Regression Model  
+*Linear regression* tries to find a linear equation which describe the relationship between a response variable and a explanation variable. The best model fit is made by minimizing the sum of squared residuals. Simple linear regression model can be extended in many ways and we call them *Multiple Linear Regression*.  
 ```{r}
 set.seed(13)
-# Get random forest model fit
-rfFit <- randomForest(cnt ~ ., data=train, mtry=ncol(train)/3, ntree=200, importance=TRUE)
-rfPred <- predict(rfFit, newdata=dplyr::select(test,-cnt))
-# Root MSE value of root forest
-rfRMSE <- sqrt(mean((rfPred-test$cnt)^2))
-rfRMSE
+# multiple linear regression model 1
+lmFit <- train(cnt ~ temp + I(temp^2), data=train, 
+               method="lm",
+               trControl=trainControl(method="cv",number=10))
+lmFit
+lmPred <- predict(lmFit, newdata=test)
+
+# multiple linear regression model 2
 
 ```
 
-# Comparison
+## Random Forest Model  
+```{r}
+# Get random forest model fit
+rfFit <- train(cnt ~ temp + mnth + I(temp^2), data=train,
+               method="rf", 
+               trControl=trainControl(method="cv",number=10))
+rfFit
+rfPred <- predict(rfFit, newdata=test)
+```
+
+## Boosted Tree Model  
 ```{r}
 
+
+
+```
+
+# Comparison  
+```{r}
+# multiple linear regression model 1
+multiRMSE <- postResample(lmPred, test$cnt)
+multiRMSE
+# multiple linear regression model 2
+
+# random forest model
+rfRMSE <- postResample(rfPred, test$cnt)
+rfRMSE
+
+
+# boosted tree model
+
+
+# compare
+#c(   ,   ,   ,   )
 ```
 
 # Automation
