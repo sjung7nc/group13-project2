@@ -82,7 +82,7 @@ by.weather
 ggplot(by.weather, aes(x=weathersit, y=Bikers))+geom_col(fill="cornflowerblue", width = 0.8)+
   scale_x_discrete(name="Weather")
 
-# We can inspect the trend of all users across weather condition using this plot.
+# We can inspect the trend of all users across temperature using this plot.
 ggplot(train, aes(x=temp, y=cnt)) + geom_point() + geom_smooth()+
   scale_x_continuous(name="Temperature")+scale_y_discrete(name="Bikers")
 
@@ -99,7 +99,6 @@ ggplot(train, aes(x=holiday, y=casual))+geom_boxplot(fill="darkmagenta")+
 ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")+
   scale_x_discrete(name="Holiday")+scale_y_continuous(name="Registered Users")
 
-# We can inspect the trend of registered users across whether holiday or not using this plot.
 
 table(train$season, train$weathersit)
 table(train$workingday, train$weathersit)
@@ -111,24 +110,41 @@ table(train$workingday, train$weathersit)
 ```{r}
 set.seed(13)
 # multiple linear regression model 1
+## I am playing around! This is not the answer yet!!!!!!!!!!
 lmFit <- train(cnt ~ temp + I(temp^2), data=train, 
                method="lm",
                trControl=trainControl(method="cv",number=10))
 lmFit
 lmPred <- predict(lmFit, newdata=test)
 
+lmFit2 <- train(cnt ~ ., data=train, 
+               method="lm",
+               trControl=trainControl(method="cv",number=10))
+lmFit2
+lmPred2 <- predict(lmFit2, newdata=test)
+
+
 # multiple linear regression model 2
 
 ```
 
 ## Random Forest Model  
+*Random forest model* is one of 3 major methods of *Ensemble tree model*. Create a tree from a random subset of predictors for a bootstrap sample and then train the tree. Repeat this for many times, say 100 or 1000 repeats. The final prediction is average of these predictions.  
 ```{r}
 # Get random forest model fit
-rfFit <- train(cnt ~ temp + mnth + I(temp^2), data=train,
+## I am playing around! This is not the answer yet!!!!!!!!!!
+rfFit <- train(cnt ~ temp + season + temp:season, data=train,
                method="rf", 
                trControl=trainControl(method="cv",number=10))
 rfFit
 rfPred <- predict(rfFit, newdata=test)
+
+rfFit2 <- train(cnt ~ ., data=train,
+               method="rf", 
+               trControl=trainControl(method="cv",number=10))
+rfFit2
+rfPred2 <- predict(rfFit2, newdata=test)
+
 ```
 
 ## Boosted Tree Model  
@@ -140,15 +156,20 @@ rfPred <- predict(rfFit, newdata=test)
 
 # Comparison  
 ```{r}
+
+set.seed(13)
 # multiple linear regression model 1
 multiRMSE <- postResample(lmPred, test$cnt)
 multiRMSE
+multiRMSE2 <- postResample(lmPred2, test$cnt)
+multiRMSE2
 # multiple linear regression model 2
 
 # random forest model
 rfRMSE <- postResample(rfPred, test$cnt)
 rfRMSE
-
+rfRMSE2 <- postResample(rfPred2, test$cnt)
+rfRMSE2
 
 # boosted tree model
 
