@@ -8,7 +8,7 @@ output: github_document
 Libraries and other set up should be in this chunk
 ```{r}
 library(tidyverse)
-library(corrplot)
+#library(corrplot)
 library(caret)
 ```
 
@@ -99,9 +99,15 @@ ggplot(train, aes(x=holiday, y=casual))+geom_boxplot(fill="darkmagenta")+
 ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")+
   scale_x_discrete(name="Holiday")+scale_y_continuous(name="Registered Users")
 
-
+summary(train)
 table(train$season, train$weathersit)
 table(train$workingday, train$weathersit)
+
+ggplot(train, aes(x = yr, y = cnt)) + 
+  geom_violin(fill = "dark grey", color = "dark red") + 
+  geom_jitter(shape = 16) + 
+  labs(x = "Year", y = "Number of Bikers") + 
+  theme_minimal()
 ```
 
 # Modeling  
