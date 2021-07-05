@@ -10,6 +10,7 @@ Libraries and other set up should be in this chunk
 library(tidyverse)
 #library(corrplot)
 library(caret)
+library(gbm)
 ```
 
 # Introduction
@@ -56,59 +57,36 @@ test <- anti_join(day, train, by = "dteday")
 #train.cor <- cor(train.nodate)
 #corrplot(train.cor, diag = FALSE, tl.srt = 45, na.label = " ", type = "lower")
 
-# Total number of each casual users and registered users 
-train %>% select(casual, registered) %>% colSums()
-
-train %>% group_by(mnth) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.month <- train %>% group_by(mnth) %>% summarise(Bikers=sum(cnt))
-by.month
-# We can inspect the trend of all users across months using this plot.
-# There may be a seasonal effect present.
-ggplot(by.month, aes(x=mnth, y=Bikers)) + geom_col(fill="coral1")+
-  scale_x_discrete(name="Month")
-
-train %>% group_by(season) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.season <- train %>% group_by(season) %>% summarise(Bikers=sum(cnt))
-by.season
-# We can inspect the trend of all users across season using this plot.
-# There may be weather or temperature effect present.
-ggplot(by.season, aes(x=season, y=Bikers))+geom_col(fill="darkolivegreen4")+
-  scale_x_discrete(name="Season")
-
-train %>% group_by(weathersit) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.weather <- train %>% group_by(weathersit) %>% summarise(Bikers=sum(cnt))
-by.weather
-# We can inspect the trend of all users across weather condition using this plot.
-ggplot(by.weather, aes(x=weathersit, y=Bikers))+geom_col(fill="cornflowerblue", width = 0.8)+
-  scale_x_discrete(name="Weather")
-
-# We can inspect the trend of all users across temperature using this plot.
-ggplot(train, aes(x=temp, y=cnt)) + geom_point() + geom_smooth()+
-  scale_x_continuous(name="Temperature")+scale_y_discrete(name="Bikers")
-
-train %>% group_by(holiday) %>% summarize(avg.casual=mean(casual),avg.registered=mean(registered))
-by.holi <- train %>% group_by(holiday) %>% summarise(Bikers=sum(cnt))
-by.holi
-# We can inspect the trend of all users across whether holiday or not using this plot.
-ggplot(by.holi, aes(x=holiday, y=Bikers)) + geom_col(fill="darkgoldenrod1", width = 0.7)+
-  scale_x_discrete(name="Holiday")
-# We can inspect the trend of casual users across whether holiday or not using this plot.
-ggplot(train, aes(x=holiday, y=casual))+geom_boxplot(fill="darkmagenta")+
-  scale_x_discrete(name="Holiday")+scale_y_continuous(name="Casual Users")
-# We can inspect the trend of registered users across whether holiday or not using this plot.
-ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")+
-  scale_x_discrete(name="Holiday")+scale_y_continuous(name="Registered Users")
-
+# Numerical summaries
 summary(train)
+train %>% select(casual, registered) %>% colSums()
 table(train$season, train$weathersit)
 table(train$workingday, train$weathersit)
 
+train %>% group_by(yr) %>% summarize(Total.Bikers=sum(cnt))
+# We can inspect the trend of users across years
 ggplot(train, aes(x = yr, y = cnt)) + 
   geom_violin(fill = "dark grey", color = "dark red") + 
   geom_jitter(shape = 16) + 
   labs(x = "Year", y = "Number of Bikers") + 
   theme_minimal()
 
+train %>% group_by(mnth) %>% 
+  summarize(Total.casual=sum(casual),Total.registered=sum(registered),
+            Total.Bikers=sum(cnt))
+# We can inspect the trend of users across months using this plot.
+# There may be a seasonal effect present.
+ggplot(train, aes(x = mnth, y = cnt, fill = "red")) + 
+  geom_col() + 
+  geom_col(data = train, aes(x = mnth, y = casual, fill = "blue")) +
+  labs(x = "Month", y = "Total Number of Bikers") +
+  scale_fill_discrete(name = "Biker Type", labels = c("Casual", "Registered"))
+
+train %>% group_by(season,mnth) %>% 
+  summarize(Total.casual=sum(casual),Total.registered=sum(registered),
+            Total.Bikers=sum(cnt))
+# We can inspect the trend of all users across season using this plot.
+# There may be weather or temperature effect present.
 ggplot(train, aes(x = season, y = cnt)) + 
   geom_violin() +
   geom_jitter(shape = 16, size = 3, aes(color = mnth)) +
@@ -118,11 +96,33 @@ ggplot(train, aes(x = season, y = cnt)) +
                                                 "#cab2d6", "#6a3d9a", "#dfc27d", "#b15928")) +
   theme_minimal()
 
-ggplot(train, aes(x = mnth, y = cnt, fill = "red")) + 
-  geom_col() + 
-  geom_col(data = train, aes(x = mnth, y = casual, fill = "blue")) +
-  labs(x = "Month", y = "Total Number of Bikers") +
-  scale_fill_discrete(name = "Biker Type", labels = c("Casual", "Registered"))
+by.weather <- train %>% group_by(weathersit) %>% 
+  summarize(Total.casual=sum(casual),Total.registered=sum(registered),
+            Total.Bikers=sum(cnt))
+by.weather
+# We can inspect the trend of all users across weather condition using this plot.
+ggplot(by.weather, aes(x=weathersit, y=Total.Bikers))+geom_col(fill="cornflowerblue", width = 0.8)+
+  scale_x_discrete(name="Weather")
+
+# We can inspect the trend of all users across temperature using this plot.
+ggplot(train, aes(x=temp, y=cnt)) + geom_point() + geom_smooth()+
+  scale_x_continuous(name="Temperature")+scale_y_discrete(name="Bikers")
+
+by.holi <- train %>% group_by(holiday) %>% 
+  summarize(Total.casual=sum(casual),Total.registered=sum(registered),
+            Total.Bikers=sum(cnt))
+by.holi
+# We can inspect the trend of all users across whether holiday or not using this plot.
+ggplot(by.holi, aes(x=holiday, y=Total.Bikers)) + geom_col(fill="darkgoldenrod1", width = 0.7)+
+  scale_x_discrete(name="Holiday")
+# We can inspect the trend of casual users across whether holiday or not using this plot.
+ggplot(train, aes(x=holiday, y=casual))+geom_boxplot(fill="darkmagenta")+
+  scale_x_discrete(name="Holiday")+scale_y_continuous(name="Casual Users")
+# We can inspect the trend of registered users across whether holiday or not using this plot.
+ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")+
+  scale_x_discrete(name="Holiday")+scale_y_continuous(name="Registered Users")
+
+
 ```
 
 # Modeling  
@@ -131,19 +131,11 @@ ggplot(train, aes(x = mnth, y = cnt, fill = "red")) +
 ```{r}
 set.seed(13)
 # multiple linear regression model 1
-## I am playing around! This is not the answer yet!!!!!!!!!!
-lmFit <- train(cnt ~ temp + I(temp^2), data=train, 
-               method="lm",
+lmFit <- train(cnt ~ season + temp + I(temp^2), data=train, method="lm",
                trControl=trainControl(method="cv",number=10))
-lmFit
+summary(lmFit)
+
 lmPred <- predict(lmFit, newdata=test)
-
-lmFit2 <- train(cnt ~ ., data=train, 
-               method="lm",
-               trControl=trainControl(method="cv",number=10))
-lmFit2
-lmPred2 <- predict(lmFit2, newdata=test)
-
 
 # multiple linear regression model 2
 set.seed(13)
@@ -157,20 +149,13 @@ mlrPred <- predict(mlrFit, newdata = test)
 ## Random Forest Model  
 *Random forest model* is one of 3 major methods of *Ensemble tree model*. Create a tree from a random subset of predictors for a bootstrap sample and then train the tree. Repeat this for many times, say 100 or 1000 repeats. The final prediction is average of these predictions.  
 ```{r}
+set.seed(13)
 # Get random forest model fit
-## I am playing around! This is not the answer yet!!!!!!!!!!
-rfFit <- train(cnt ~ temp + season + temp:season, data=train,
+rfFit <- train(cnt ~ season + temp + weathersit, data=train,
                method="rf", 
                trControl=trainControl(method="cv",number=10))
 rfFit
 rfPred <- predict(rfFit, newdata=test)
-
-rfFit2 <- train(cnt ~ ., data=train,
-               method="rf", 
-               trControl=trainControl(method="cv",number=10))
-rfFit2
-rfPred2 <- predict(rfFit2, newdata=test)
-
 ```
 
 ## Boosted Tree Model  
@@ -187,27 +172,25 @@ boostPred
 
 # Comparison  
 ```{r}
-
 set.seed(13)
 # multiple linear regression model 1
 multiRMSE <- postResample(lmPred, test$cnt)
 multiRMSE
-multiRMSE2 <- postResample(lmPred2, test$cnt)
-multiRMSE2
+
 # multiple linear regression model 2
 mlrRMSE <- postResample(mlrPred, test$cnt)
 mlrRMSE
+
 # random forest model
-#rfRMSE <- postResample(rfPred, test$cnt)
-#rfRMSE
-#rfRMSE2 <- postResample(rfPred2, test$cnt)
-#rfRMSE2
+rfRMSE <- postResample(rfPred, test$cnt)
+rfRMSE
 
 # boosted tree model
 boostRMSE <- postResample(boostPred, test$cnt)
 boostRMSE
+
 # compare
-#c(   ,   ,   ,   )
+c(MultipleLR1=multiRMSE[1],MultipleLR2=mlrRMSE[1],RandomForest=rfRMSE[1],Boosting=boostRMSE[1])
 ```
 
 # Automation
