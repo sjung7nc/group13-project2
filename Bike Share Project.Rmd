@@ -8,7 +8,6 @@ output: github_document
 Libraries and other set up should be in this chunk
 ```{r}
 library(tidyverse)
-#library(corrplot)
 library(caret)
 library(gbm)
 ```
@@ -52,11 +51,6 @@ test <- anti_join(day, train, by = "dteday")
 
 # Summarizations
 ```{r}
-# Correlation plot of the training data without the date included
-#train.nodate <- train %>% select(!contains("dte"))
-#train.cor <- cor(train.nodate)
-#corrplot(train.cor, diag = FALSE, tl.srt = 45, na.label = " ", type = "lower")
-
 # Numerical summaries
 summary(train)
 train %>% select(casual, registered) %>% colSums()
@@ -159,6 +153,7 @@ rfPred <- predict(rfFit, newdata=test)
 ```
 
 ## Boosted Tree Model  
+The *boosted tree model* is a type of *ensemble tree model*. The way the boosted tree works is that the trees are fit sequentially. Each new tree is fit on on a modified version of the original data and the predictions are updated as the trees are grown.
 ```{r}
 library(gbm)
 set.seed(13)
@@ -190,8 +185,11 @@ boostRMSE <- postResample(boostPred, test$cnt)
 boostRMSE
 
 # compare
-c(MultipleLR1=multiRMSE[1],MultipleLR2=mlrRMSE[1],RandomForest=rfRMSE[1],Boosting=boostRMSE[1])
+lowestRMSE <- c(MultipleLR1=multiRMSE[1],MultipleLR2=mlrRMSE[1],RandomForest=rfRMSE[1],Boosting=boostRMSE[1])
+lowestRMSE
 ```
+
+The preferred model has the lowest RMSE. The model that has the lowest RMSE for [day] is `r which.min(lowestRMSE)`, and has the model [equation].
 
 # Automation
 ```{r}
