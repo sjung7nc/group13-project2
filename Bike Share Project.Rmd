@@ -13,9 +13,10 @@ library(gbm)
 ```
 
 # Introduction
-```{r}
 
-```
+This dataset compiles the daily casual, registered and total (combined casual and residual) bikers using this bike share. Looking at the available variables in the dataset, there are several that are attributes of the date, and the rest are attributes of the weather. We will specifically be looking at the temperature, season, year and the weather to predict the total number of bikers using the bike share.
+
+[Explain the variables]
 
 # Data
 ```{r}
