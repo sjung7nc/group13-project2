@@ -65,6 +65,7 @@ day.data$days[day.data$weekday==6] <- "Saturday"
 # Get unique days
 weekdays <- unique(day.data$days)
 
+# Filter data to subset
 day <- day.data %>% filter(days == params$Day)
 
 # Converting variables that should be factors into factor variables
@@ -94,6 +95,10 @@ test <- anti_join(day, train, by = "dteday")
 ```
 
 # Summarizations
+
+produce some meaningful summary statistics and plots about the training
+data we are working with. Explore the data a bit and then we are ready
+to fit some models.
 
 ``` r
 # Numerical summaries
@@ -161,6 +166,7 @@ table(train$workingday, train$weathersit)
     ##   Working       39    22               1                   0
 
 ``` r
+# Total bikers grouped by year
 train %>% group_by(yr) %>% summarize(Total.Bikers=sum(cnt))
 ```
 
@@ -182,6 +188,7 @@ ggplot(train, aes(x = yr, y = cnt)) +
 ![](Bike-Share-Project_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
+# Total number of casual users, registered users and all bikers by month
 train %>% group_by(mnth) %>% 
   summarize(Total.casual=sum(casual),Total.registered=sum(registered),
             Total.Bikers=sum(cnt))
@@ -216,6 +223,7 @@ ggplot(train, aes(x = mnth, y = cnt, fill = "red")) +
 ![](Bike-Share-Project_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
 
 ``` r
+# Total number of casual, registered and all bikers by month within each season
 train %>% group_by(season,mnth) %>% 
   summarize(Total.casual=sum(casual),Total.registered=sum(registered),
             Total.Bikers=sum(cnt))
@@ -260,6 +268,7 @@ ggplot(train, aes(x = season, y = cnt)) +
 ![](Bike-Share-Project_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->
 
 ``` r
+# Total number of casual, registered and all bikers by weather
 by.weather <- train %>% group_by(weathersit) %>% 
   summarize(Total.casual=sum(casual),Total.registered=sum(registered),
             Total.Bikers=sum(cnt))
@@ -292,6 +301,7 @@ ggplot(train, aes(x=temp, y=cnt)) + geom_point() + geom_smooth()+
 ![](Bike-Share-Project_files/figure-gfm/unnamed-chunk-3-5.png)<!-- -->
 
 ``` r
+# Total number of casual, registered and all bikers by holiday or not
 by.holi <- train %>% group_by(holiday) %>% 
   summarize(Total.casual=sum(casual),Total.registered=sum(registered),
             Total.Bikers=sum(cnt))
@@ -525,4 +535,4 @@ lowestRMSE
     ##          1499.319          1216.230          1372.195          1256.847
 
 The preferred model has the lowest RMSE. The model that has the lowest
-RMSE for \[day\] is 2, and has the model \[equation\].
+RMSE for Monday is 2, and has the model \[equation\].
