@@ -2,14 +2,17 @@
 title: "Bike Share Project"
 author: "Soohee Jung, Kera Whitley"
 output: github_document
+params:
+  Day: "Monday"
 ---
 
 # Set up
 Libraries and other set up should be in this chunk
-```{r}
+```{r message=FALSE}
 library(tidyverse)
 library(caret)
 library(gbm)
+library(shiny)
 ```
 
 # Introduction
@@ -19,9 +22,23 @@ This dataset compiles the daily casual, registered and total (combined casual an
 [Explain the variables]
 
 # Data
-```{r}
+```{r warning=FALSE}
+# Read in dataset
 day.data <- read_csv("day.csv")
-day <- day.data %>% filter(weekday == 1)
+
+# Convert weekday column from numeric to character value
+day.data$days[day.data$weekday==0] <- "Sunday"
+day.data$days[day.data$weekday==1] <- "Monday"
+day.data$days[day.data$weekday==2] <- "Tuesday"
+day.data$days[day.data$weekday==3] <- "Wednesday"
+day.data$days[day.data$weekday==4] <- "Thursday"
+day.data$days[day.data$weekday==5] <- "Friday"
+day.data$days[day.data$weekday==6] <- "Saturday"
+
+# Get unique days
+weekdays <- unique(day.data$days)
+
+day <- day.data %>% filter(days == params$Day)
 
 # Converting variables that should be factors into factor variables
 day$season <- factor(day$season)
@@ -116,8 +133,6 @@ ggplot(train, aes(x=holiday, y=casual))+geom_boxplot(fill="darkmagenta")+
 # We can inspect the trend of registered users across whether holiday or not using this plot.
 ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")+
   scale_x_discrete(name="Holiday")+scale_y_continuous(name="Registered Users")
-
-
 ```
 
 # Modeling  
@@ -192,8 +207,4 @@ lowestRMSE
 
 The preferred model has the lowest RMSE. The model that has the lowest RMSE for [day] is `r which.min(lowestRMSE)`, and has the model [equation].
 
-# Automation
-```{r}
-
-```
 
