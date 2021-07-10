@@ -12,6 +12,7 @@ Libraries and other set up should be in this chunk
 library(tidyverse)
 library(caret)
 library(gbm)
+library(corrplot)
 library(shiny)
 ```
 
@@ -20,6 +21,7 @@ library(shiny)
 This dataset compiles the daily casual, registered and total (combined casual and residual) bikers using this bike share. Looking at the available variables in the dataset, there are several that are attributes of the date, and the rest are attributes of the weather. We will specifically be looking at the temperature, season, year and the weather to predict the total number of bikers using the bike share.
 
 [Explain the variables]
+
 
 # Data
 ```{r warning=FALSE}
@@ -71,6 +73,10 @@ test <- anti_join(day, train, by = "dteday")
 # Summarizations  
 produce some meaningful summary statistics and plots about the training data we are working with. Explore the data a bit and then we are ready to fit some models.  
 ```{r}
+str(day.data)
+Correlation <- cor(select(day.data,-c(instant,dteday,weekday,days)),method="spearman")
+corrplot(Correlation, method="number")
+
 # Numerical summaries
 summary(train)
 train %>% select(casual, registered) %>% colSums()
@@ -118,7 +124,6 @@ by.weather <- train %>% group_by(weathersit) %>%
   summarize(Total.casual=sum(casual),Total.registered=sum(registered),
             Total.Bikers=sum(cnt))
 by.weather
-
 # We can inspect the trend of all users across weather condition using this plot.
 ggplot(by.weather, aes(x=weathersit, y=Total.Bikers))+geom_col(fill="cornflowerblue", width = 0.8)+
   scale_x_discrete(name="Weather")
@@ -126,6 +131,10 @@ ggplot(by.weather, aes(x=weathersit, y=Total.Bikers))+geom_col(fill="cornflowerb
 # We can inspect the trend of all users across temperature using this plot.
 ggplot(train, aes(x=temp, y=cnt)) + geom_point() + geom_smooth()+
   scale_x_continuous(name="Temperature")+scale_y_discrete(name="Bikers")
+
+# We can inspect the trend of all users across feeling temperature using this plot.
+ggplot(train, aes(x=atemp, y=cnt)) + geom_point() + geom_smooth()+
+  scale_x_continuous(name="Feeling Temperature")+scale_y_discrete(name="Bikers")
 
 # Total number of casual, registered and all bikers by holiday or not
 by.holi <- train %>% group_by(holiday) %>% 
@@ -149,7 +158,7 @@ ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")+
 ```{r}
 set.seed(13)
 # multiple linear regression model 1
-lmFit <- train(cnt ~ season + temp + I(temp^2), data=train, method="lm",
+lmFit <- train(cnt ~ season + temp + atemp, data=train, method="lm",
                trControl=trainControl(method="cv",number=10))
 summary(lmFit)
 
@@ -169,7 +178,7 @@ mlrPred <- predict(mlrFit, newdata = test)
 ```{r}
 set.seed(13)
 # Get random forest model fit
-rfFit <- train(cnt ~ season + temp + weathersit, data=train,
+rfFit <- train(cnt ~ season + temp + atemp + yr, data=train,
                method="rf", 
                trControl=trainControl(method="cv",number=10))
 rfFit
@@ -213,6 +222,6 @@ lowestRMSE <- c(MultipleLR1=multiRMSE[1],MultipleLR2=mlrRMSE[1],RandomForest=rfR
 lowestRMSE
 ```
 
-The preferred model has the lowest RMSE. The model that has the lowest RMSE for `r params$Day` is `r which.min(lowestRMSE)`, and has the model [equation].
+The preferred model has the lowest RMSE. The model that has the lowest RMSE for `r params[[2]]` is `r which.min(lowestRMSE)`, and has the model [equation].
 
 
