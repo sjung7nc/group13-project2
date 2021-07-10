@@ -2,27 +2,31 @@ Bike Share Project
 ================
 Soohee Jung, Kera Whitley
 
-# Set up
-
-Libraries and other set up should be in this chunk
-
-``` r
-library(tidyverse)
-library(caret)
-library(gbm)
-library(shiny)
-```
-
 # Introduction
 
 This dataset compiles the daily casual, registered and total (combined
 casual and residual) bikers using this bike share. Looking at the
 available variables in the dataset, there are several that are
 attributes of the date, and the rest are attributes of the weather. We
-will specifically be looking at the temperature, season, year and the
-weather to predict the total number of bikers using the bike share.
+will be looking at the temperature, season, and the year to predict the
+total number of bikers using the bike share. The idea behind looking at
+these particular variables being that, there are more people riding
+bikes when the weather is nice. Year would come into play because the
+longer the bike share is around, the more chances there are for people
+to know about and use it.
 
-\[Explain the variables\]
+Later, two multiple linear regression models, one random forest model
+and one boosted models were fit. The variables specifically chosen were
+season, temp, atemp, and yr. When exploring the data with different
+plots and tables, it could be seen that the number of total bike share
+users seemed to fluctuate with differences in these variables. The
+correlation plot shows that theses variables have the highest either
+positive or negative correlation with the total number of bikers, out of
+the variables explored. The violin plots show firstly that there is a
+definite difference in the number of total users by year, and that there
+is a general trend with regard to season, but that month may not as good
+of an indicator. The normalized temperature, the normalized temperature
+feel both are fairly highly correlated to the total number of bikers.
 
 # Data
 
@@ -32,7 +36,7 @@ day.data <- read_csv("day.csv")
 ```
 
     ## 
-    ## -- Column specification -------------------------------------------------------------------------------------------------------------------
+    ## -- Column specification ------------------------------------------------------------------------------------------------
     ## cols(
     ##   instant = col_double(),
     ##   dteday = col_date(format = ""),
@@ -65,6 +69,7 @@ day.data$days[day.data$weekday==6] <- "Saturday"
 # Get unique days
 weekdays <- unique(day.data$days)
 
+# Filter data to subset
 day <- day.data %>% filter(days == params$Day)
 
 # Converting variables that should be factors into factor variables
@@ -95,6 +100,60 @@ test <- anti_join(day, train, by = "dteday")
 
 # Summarizations
 
+produce some meaningful summary statistics and plots about the training
+data we are working with. Explore the data a bit and then we are ready
+to fit some models.
+
+``` r
+str(day.data)
+```
+
+    ## spec_tbl_df [731 x 17] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+    ##  $ instant   : num [1:731] 1 2 3 4 5 6 7 8 9 10 ...
+    ##  $ dteday    : Date[1:731], format: "2011-01-01" "2011-01-02" "2011-01-03" "2011-01-04" ...
+    ##  $ season    : num [1:731] 1 1 1 1 1 1 1 1 1 1 ...
+    ##  $ yr        : num [1:731] 0 0 0 0 0 0 0 0 0 0 ...
+    ##  $ mnth      : num [1:731] 1 1 1 1 1 1 1 1 1 1 ...
+    ##  $ holiday   : num [1:731] 0 0 0 0 0 0 0 0 0 0 ...
+    ##  $ weekday   : num [1:731] 6 0 1 2 3 4 5 6 0 1 ...
+    ##  $ workingday: num [1:731] 0 0 1 1 1 1 1 0 0 1 ...
+    ##  $ weathersit: num [1:731] 2 2 1 1 1 1 2 2 1 1 ...
+    ##  $ temp      : num [1:731] 0.344 0.363 0.196 0.2 0.227 ...
+    ##  $ atemp     : num [1:731] 0.364 0.354 0.189 0.212 0.229 ...
+    ##  $ hum       : num [1:731] 0.806 0.696 0.437 0.59 0.437 ...
+    ##  $ windspeed : num [1:731] 0.16 0.249 0.248 0.16 0.187 ...
+    ##  $ casual    : num [1:731] 331 131 120 108 82 88 148 68 54 41 ...
+    ##  $ registered: num [1:731] 654 670 1229 1454 1518 ...
+    ##  $ cnt       : num [1:731] 985 801 1349 1562 1600 ...
+    ##  $ days      : chr [1:731] "Saturday" "Sunday" "Monday" "Tuesday" ...
+    ##  - attr(*, "spec")=
+    ##   .. cols(
+    ##   ..   instant = col_double(),
+    ##   ..   dteday = col_date(format = ""),
+    ##   ..   season = col_double(),
+    ##   ..   yr = col_double(),
+    ##   ..   mnth = col_double(),
+    ##   ..   holiday = col_double(),
+    ##   ..   weekday = col_double(),
+    ##   ..   workingday = col_double(),
+    ##   ..   weathersit = col_double(),
+    ##   ..   temp = col_double(),
+    ##   ..   atemp = col_double(),
+    ##   ..   hum = col_double(),
+    ##   ..   windspeed = col_double(),
+    ##   ..   casual = col_double(),
+    ##   ..   registered = col_double(),
+    ##   ..   cnt = col_double()
+    ##   .. )
+
+``` r
+Correlation <- cor(select(day.data,-c(instant,dteday,weekday,days)), method="spearman")
+corrplot(Correlation, method="number", type = 'lower', tl.col = 'black', 
+         cl.ratio = 0.2, tl.srt = 45, number.cex = 0.7)
+```
+
+![](Wednesday_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
 ``` r
 # Numerical summaries
 summary(train)
@@ -108,21 +167,21 @@ summary(train)
     ##  3rd Qu.:566.8   3rd Qu.:2012-07-19                         Mar    : 6                    3rd Qu.:3                   
     ##  Max.   :726.0   Max.   :2012-12-26                         Apr    : 6                    Max.   :3                   
     ##                                                             (Other):30                                                
-    ##                weathersit      temp            atemp             hum           windspeed           casual         registered  
-    ##  Fair               :42   Min.   :0.1075   Min.   :0.1193   Min.   :0.3600   Min.   :0.06096   Min.   :   9.0   Min.   : 432  
-    ##  Misty              :25   1st Qu.:0.3463   1st Qu.:0.3412   1st Qu.:0.5308   1st Qu.:0.13542   1st Qu.: 207.5   1st Qu.:2352  
-    ##  Light Snow/Rain    : 5   Median :0.4992   Median :0.4870   Median :0.6281   Median :0.18440   Median : 497.5   Median :4224  
-    ##  Heavy Rain/Ice/Snow: 0   Mean   :0.5040   Mean   :0.4820   Mean   :0.6338   Mean   :0.19410   Mean   : 575.8   Mean   :4084  
-    ##                           3rd Qu.:0.6762   3rd Qu.:0.6320   3rd Qu.:0.7414   3rd Qu.:0.24877   3rd Qu.: 842.0   3rd Qu.:5663  
-    ##                           Max.   :0.7933   Max.   :0.7469   Max.   :0.9704   Max.   :0.41543   Max.   :2562.0   Max.   :6946  
-    ##                                                                                                                               
-    ##       cnt           days          
-    ##  Min.   : 441   Length:72         
-    ##  1st Qu.:2530   Class :character  
-    ##  Median :4776   Mode  :character  
-    ##  Mean   :4659                     
-    ##  3rd Qu.:6905                     
-    ##  Max.   :8173                     
+    ##                weathersit      temp            atemp             hum           windspeed           casual      
+    ##  Fair               :42   Min.   :0.1075   Min.   :0.1193   Min.   :0.3600   Min.   :0.06096   Min.   :   9.0  
+    ##  Misty              :25   1st Qu.:0.3463   1st Qu.:0.3412   1st Qu.:0.5308   1st Qu.:0.13542   1st Qu.: 207.5  
+    ##  Light Snow/Rain    : 5   Median :0.4992   Median :0.4870   Median :0.6281   Median :0.18440   Median : 497.5  
+    ##  Heavy Rain/Ice/Snow: 0   Mean   :0.5040   Mean   :0.4820   Mean   :0.6338   Mean   :0.19410   Mean   : 575.8  
+    ##                           3rd Qu.:0.6762   3rd Qu.:0.6320   3rd Qu.:0.7414   3rd Qu.:0.24877   3rd Qu.: 842.0  
+    ##                           Max.   :0.7933   Max.   :0.7469   Max.   :0.9704   Max.   :0.41543   Max.   :2562.0  
+    ##                                                                                                                
+    ##    registered        cnt           days          
+    ##  Min.   : 432   Min.   : 441   Length:72         
+    ##  1st Qu.:2352   1st Qu.:2530   Class :character  
+    ##  Median :4224   Median :4776   Mode  :character  
+    ##  Mean   :4084   Mean   :4659                     
+    ##  3rd Qu.:5663   3rd Qu.:6905                     
+    ##  Max.   :6946   Max.   :8173                     
     ## 
 
 ``` r
@@ -153,6 +212,7 @@ table(train$workingday, train$weathersit)
     ##   Working       41    25               5                   0
 
 ``` r
+# Total bikers grouped by year
 train %>% group_by(yr) %>% summarize(Total.Bikers=sum(cnt))
 ```
 
@@ -171,9 +231,10 @@ ggplot(train, aes(x = yr, y = cnt)) +
   theme_minimal()
 ```
 
-![](Wednesday_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](Wednesday_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
 
 ``` r
+# Total number of casual users, registered users and all bikers by month
 train %>% group_by(mnth) %>% 
   summarize(Total.casual=sum(casual),Total.registered=sum(registered),
             Total.Bikers=sum(cnt))
@@ -205,9 +266,10 @@ ggplot(train, aes(x = mnth, y = cnt, fill = "red")) +
   scale_fill_discrete(name = "Biker Type", labels = c("Casual", "Registered"))
 ```
 
-![](Wednesday_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
+![](Wednesday_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->
 
 ``` r
+# Total number of casual, registered and all bikers by month within each season
 train %>% group_by(season,mnth) %>% 
   summarize(Total.casual=sum(casual),Total.registered=sum(registered),
             Total.Bikers=sum(cnt))
@@ -249,9 +311,10 @@ ggplot(train, aes(x = season, y = cnt)) +
   theme_minimal()
 ```
 
-![](Wednesday_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->
+![](Wednesday_files/figure-gfm/unnamed-chunk-3-4.png)<!-- -->
 
 ``` r
+# Total number of casual, registered and all bikers by weather
 by.weather <- train %>% group_by(weathersit) %>% 
   summarize(Total.casual=sum(casual),Total.registered=sum(registered),
             Total.Bikers=sum(cnt))
@@ -271,7 +334,7 @@ ggplot(by.weather, aes(x=weathersit, y=Total.Bikers))+geom_col(fill="cornflowerb
   scale_x_discrete(name="Weather")
 ```
 
-![](Wednesday_files/figure-gfm/unnamed-chunk-3-4.png)<!-- -->
+![](Wednesday_files/figure-gfm/unnamed-chunk-3-5.png)<!-- -->
 
 ``` r
 # We can inspect the trend of all users across temperature using this plot.
@@ -281,9 +344,20 @@ ggplot(train, aes(x=temp, y=cnt)) + geom_point() + geom_smooth()+
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
-![](Wednesday_files/figure-gfm/unnamed-chunk-3-5.png)<!-- -->
+![](Wednesday_files/figure-gfm/unnamed-chunk-3-6.png)<!-- -->
 
 ``` r
+# We can inspect the trend of all users across feeling temperature using this plot.
+ggplot(train, aes(x=atemp, y=cnt)) + geom_point() + geom_smooth()+
+  scale_x_continuous(name="Feeling Temperature")+scale_y_discrete(name="Bikers")
+```
+
+    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+
+![](Wednesday_files/figure-gfm/unnamed-chunk-3-7.png)<!-- -->
+
+``` r
+# Total number of casual, registered and all bikers by holiday or not
 by.holi <- train %>% group_by(holiday) %>% 
   summarize(Total.casual=sum(casual),Total.registered=sum(registered),
             Total.Bikers=sum(cnt))
@@ -302,7 +376,7 @@ ggplot(by.holi, aes(x=holiday, y=Total.Bikers)) + geom_col(fill="darkgoldenrod1"
   scale_x_discrete(name="Holiday")
 ```
 
-![](Wednesday_files/figure-gfm/unnamed-chunk-3-6.png)<!-- -->
+![](Wednesday_files/figure-gfm/unnamed-chunk-3-8.png)<!-- -->
 
 ``` r
 # We can inspect the trend of casual users across whether holiday or not using this plot.
@@ -310,7 +384,7 @@ ggplot(train, aes(x=holiday, y=casual))+geom_boxplot(fill="darkmagenta")+
   scale_x_discrete(name="Holiday")+scale_y_continuous(name="Casual Users")
 ```
 
-![](Wednesday_files/figure-gfm/unnamed-chunk-3-7.png)<!-- -->
+![](Wednesday_files/figure-gfm/unnamed-chunk-3-9.png)<!-- -->
 
 ``` r
 # We can inspect the trend of registered users across whether holiday or not using this plot.
@@ -318,7 +392,7 @@ ggplot(train, aes(x=holiday, y=registered))+geom_boxplot(fill="darkorchid")+
   scale_x_discrete(name="Holiday")+scale_y_continuous(name="Registered Users")
 ```
 
-![](Wednesday_files/figure-gfm/unnamed-chunk-3-8.png)<!-- -->
+![](Wednesday_files/figure-gfm/unnamed-chunk-3-10.png)<!-- -->
 
 # Modeling
 
@@ -333,7 +407,7 @@ them *Multiple Linear Regression*.
 ``` r
 set.seed(13)
 # multiple linear regression model 1
-lmFit <- train(cnt ~ season + temp + I(temp^2), data=train, method="lm",
+lmFit <- train(cnt ~ season + temp + atemp, data=train, method="lm",
                trControl=trainControl(method="cv",number=10))
 summary(lmFit)
 ```
@@ -344,22 +418,22 @@ summary(lmFit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -3874.7 -1275.8   544.2  1241.4  2430.3 
+    ## -3741.7 -1263.9    80.4  1343.1  2526.7 
     ## 
     ## Coefficients:
     ##              Estimate Std. Error t value Pr(>|t|)  
-    ## (Intercept)   -1668.9     1458.9  -1.144   0.2568  
-    ## seasonSpring    686.7      683.9   1.004   0.3190  
-    ## seasonSummer   1644.6      894.8   1.838   0.0706 .
-    ## seasonFall      922.5      650.8   1.418   0.1610  
-    ## temp          18135.2     6884.9   2.634   0.0105 *
-    ## `I(temp^2)`  -12548.9     6771.3  -1.853   0.0683 .
+    ## (Intercept)     422.2      811.8   0.520   0.6048  
+    ## seasonSpring    930.6      685.0   1.359   0.1789  
+    ## seasonSummer   1579.3      913.6   1.729   0.0886 .
+    ## seasonFall     1251.0      636.2   1.966   0.0535 .
+    ## temp          -3732.8    13656.7  -0.273   0.7855  
+    ## atemp         10753.2    15296.3   0.703   0.4845  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 1579 on 66 degrees of freedom
-    ## Multiple R-squared:  0.5313, Adjusted R-squared:  0.4958 
-    ## F-statistic: 14.96 on 5 and 66 DF,  p-value: 8.372e-10
+    ## Residual standard error: 1613 on 66 degrees of freedom
+    ## Multiple R-squared:  0.5106, Adjusted R-squared:  0.4735 
+    ## F-statistic: 13.77 on 5 and 66 DF,  p-value: 3.3e-09
 
 ``` r
 lmPred <- predict(lmFit, newdata=test)
@@ -401,14 +475,16 @@ mlrPred <- predict(mlrFit, newdata = test)
 ## Random Forest Model
 
 *Random forest model* is one of 3 major methods of *Ensemble tree
-model*. Create a tree from a random subset of predictors for a bootstrap
-sample and then train the tree. Repeat this for many times, say 100 or
-1000 repeats. The final prediction is average of these predictions.
+model*. It is flexible and one big advantage of the random forest model
+is that it can be used for both classification and regression models. It
+creates multiple trees from a random subset of predictors for each
+bootstrap sample and then train the trees. The final prediction is
+average of these predictions.
 
 ``` r
 set.seed(13)
 # Get random forest model fit
-rfFit <- train(cnt ~ season + temp + weathersit, data=train,
+rfFit <- train(cnt ~ season + temp + atemp + yr, data=train,
                method="rf", 
                trControl=trainControl(method="cv",number=10))
 rfFit
@@ -417,7 +493,7 @@ rfFit
     ## Random Forest 
     ## 
     ## 72 samples
-    ##  3 predictor
+    ##  4 predictor
     ## 
     ## No pre-processing
     ## Resampling: Cross-Validated (10 fold) 
@@ -425,9 +501,9 @@ rfFit
     ## Resampling results across tuning parameters:
     ## 
     ##   mtry  RMSE      Rsquared   MAE     
-    ##   2     1308.950  0.7090502  1185.421
-    ##   4     1258.745  0.7021585  1096.286
-    ##   7     1308.244  0.6784910  1093.825
+    ##   2     949.7768  0.8390797  749.9439
+    ##   4     913.2917  0.8461816  707.2381
+    ##   6     916.8359  0.8439717  704.7360
     ## 
     ## RMSE was used to select the optimal model using the smallest value.
     ## The final value used for the model was mtry = 4.
@@ -439,33 +515,51 @@ rfPred <- predict(rfFit, newdata=test)
 ## Boosted Tree Model
 
 The *boosted tree model* is a type of *ensemble tree model*. The way the
-boosted tree works is that the trees are fit sequentially. Each new tree
-is fit on on a modified version of the original data and the predictions
-are updated as the trees are grown.
+boosted tree works is that the trees are fit sequentially. Once the
+first tree has been fit, the residuals from that tree are recorded. They
+are then used as the new response and a new tree is fit. The residuals
+from this next tree are then used as the new response. this process
+repeats a number of times, with 5000 not being unreasonable.
 
 ``` r
-library(gbm)
 set.seed(13)
 
-boostFit <- gbm(cnt ~ season + temp + yr + weathersit, data = train, distribution = "gaussian", n.trees = 5000, 
-                shrinkage = 0.1, interaction.depth = 4)
+boostFit <- train(cnt ~ season + temp + yr, data = train, method = "gbm", verbose = FALSE,
+                  preProcess = c("center", "scale"),
+                  trControl = trainControl(method = "cv", number = 10))
 boostFit
 ```
 
-    ## gbm(formula = cnt ~ season + temp + yr + weathersit, distribution = "gaussian", 
-    ##     data = train, n.trees = 5000, interaction.depth = 4, shrinkage = 0.1)
-    ## A gradient boosted model with gaussian loss function.
-    ## 5000 iterations were performed.
-    ## There were 4 predictors of which 4 had non-zero influence.
+    ## Stochastic Gradient Boosting 
+    ## 
+    ## 72 samples
+    ##  3 predictor
+    ## 
+    ## Pre-processing: centered (5), scaled (5) 
+    ## Resampling: Cross-Validated (10 fold) 
+    ## Summary of sample sizes: 66, 66, 65, 64, 65, 65, ... 
+    ## Resampling results across tuning parameters:
+    ## 
+    ##   interaction.depth  n.trees  RMSE       Rsquared   MAE     
+    ##   1                   50      1034.0770  0.7817122  791.9084
+    ##   1                  100      1007.6857  0.7917937  763.3888
+    ##   1                  150       999.6667  0.7973892  765.6335
+    ##   2                   50       997.6737  0.7963992  751.2094
+    ##   2                  100       996.9284  0.8014287  734.5947
+    ##   2                  150       991.8845  0.8089645  729.5649
+    ##   3                   50       978.3937  0.8068640  735.6146
+    ##   3                  100       974.2259  0.8159974  722.1249
+    ##   3                  150       964.0570  0.8217232  707.7376
+    ## 
+    ## Tuning parameter 'shrinkage' was held constant at a value of 0.1
+    ## Tuning parameter 'n.minobsinnode' was held constant
+    ##  at a value of 10
+    ## RMSE was used to select the optimal model using the smallest value.
+    ## The final values used for the model were n.trees = 150, interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.
 
 ``` r
-boostPred <- predict(boostFit, newdata = test, n.trees = 5000)
-boostPred
+boostPred <- predict(boostFit, newdata = test)
 ```
-
-    ##  [1] 2256.8033 1731.4705 1461.0840 4846.2387 3193.6512 4473.8082 4944.5804 4169.4436 4446.2908 4477.7840 4797.0839 4446.2908 5330.6295
-    ## [14] 2510.9430 5133.1035 3839.4106 4633.8340 3924.6151 3625.5251 4119.5378  966.6127 2251.1164 2505.7106 4116.7405 6791.9885 7075.2683
-    ## [27] 6296.0973 5678.4056 8030.5529 5415.9148 5503.7525 5503.7525
 
 # Comparison
 
@@ -473,47 +567,23 @@ boostPred
 set.seed(13)
 # multiple linear regression model 1
 multiRMSE <- postResample(lmPred, test$cnt)
-multiRMSE
-```
 
-    ##         RMSE     Rsquared          MAE 
-    ## 1672.2135236    0.1835882 1408.3507398
-
-``` r
 # multiple linear regression model 2
 mlrRMSE <- postResample(mlrPred, test$cnt)
-mlrRMSE
-```
 
-    ##        RMSE    Rsquared         MAE 
-    ## 892.9117086   0.6964942 718.3239730
-
-``` r
 # random forest model
 rfRMSE <- postResample(rfPred, test$cnt)
-rfRMSE
-```
 
-    ##         RMSE     Rsquared          MAE 
-    ## 1640.1823810    0.3823921 1442.1100412
-
-``` r
 # boosted tree model
 boostRMSE <- postResample(boostPred, test$cnt)
-boostRMSE
-```
 
-    ##        RMSE    Rsquared         MAE 
-    ## 660.3234701   0.8338963 495.9183926
-
-``` r
 # compare
 lowestRMSE <- c(MultipleLR1=multiRMSE[1],MultipleLR2=mlrRMSE[1],RandomForest=rfRMSE[1],Boosting=boostRMSE[1])
 lowestRMSE
 ```
 
     ##  MultipleLR1.RMSE  MultipleLR2.RMSE RandomForest.RMSE     Boosting.RMSE 
-    ##         1672.2135          892.9117         1640.1824          660.3235
+    ##         1578.3347          892.9117         1014.7196          978.1141
 
 The preferred model has the lowest RMSE. The model that has the lowest
-RMSE for \[day\] is 4, and has the model \[equation\].
+RMSE for Wednesday is MultipleLR2.RMSE.
