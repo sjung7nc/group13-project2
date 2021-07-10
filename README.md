@@ -7,16 +7,16 @@ We will read in and summarize the [*bike sharing*](https://archive.ics.uci.edu/m
 ## | R packages required |  
 library(tidyverse)  
 library(caret)  
-library(gbm)  
+library(corrplot)  
 
 ## | Links to the generated analysis |  
-The analysis for [Monday is available here](MondayAnalysis.md).  
-The analysis for [Tuesday is available here](MondayAnalysis.md).  
-The analysis for [Wednesday is available here](MondayAnalysis.md).  
-The analysis for [Thursday is available here](MondayAnalysis.md).  
-The analysis for [Friday is available here](MondayAnalysis.md).  
-The analysis for [Saturday is available here](MondayAnalysis.md).  
-The analysis for [Sunday is available here](MondayAnalysis.md).  
+The analysis for [Monday is available here](https://github.com/sjung7nc/group13-project2/blob/main/Monday.md).  
+The analysis for [Tuesday is available here](https://github.com/sjung7nc/group13-project2/blob/main/Tuesday.md).  
+The analysis for [Wednesday is available here](https://github.com/sjung7nc/group13-project2/blob/main/Wednesday.md).  
+The analysis for [Thursday is available here](https://github.com/sjung7nc/group13-project2/blob/main/Thursday.md).  
+The analysis for [Friday is available here](https://github.com/sjung7nc/group13-project2/blob/main/Friday.md).  
+The analysis for [Saturday is available here](https://github.com/sjung7nc/group13-project2/blob/main/Saturday.md).  
+The analysis for [Sunday is available here](https://github.com/sjung7nc/group13-project2/blob/main/Sunday.md).  
 
 ## | Code used to automate the process |  
 
