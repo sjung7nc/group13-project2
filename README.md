@@ -3,8 +3,7 @@
 ## | Purpose of the repo |  
 We will read in and summarize the [*bike sharing*](https://archive.ics.uci.edu/ml/datasets/Bike+Sharing+Dataset) data set and then try to predict the number of users using predictive models.  
 
-The total number of riders is of interest because it can give a feel for the total number of bikes that need to be available at certain times, and not just cater to the number of registered riders or the number of casual riders. Different types of riders use the bikes on different days. For instance, the number of casual riders tends to increase on holidays, while the registered rider numbers are decreased. In this same example though, there are still more registered riders than casual. Knowing the overall trend helps to ensure that the bikeshare will have enough bikes to support all the users.
-......
+The total number of riders is of interest because it can give a feel for the total number of bikes that need to be available at certain times, and not just cater to the number of registered riders or the number of casual riders. Different types of riders use the bikes on different days. For instance, the number of casual riders tends to increase on holidays, while the registered rider numbers are decreased. In this same example though, there are still more registered riders than casual. Knowing the overall trend helps to ensure that the bikeshare will have enough bikes to support all the users.  
 
 ## | R packages required |  
 library(tidyverse)  
